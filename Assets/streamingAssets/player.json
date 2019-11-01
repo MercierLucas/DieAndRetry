@@ -1,0 +1,13 @@
+{
+    "Heros":
+    [
+        {
+            "Name":"Bob",
+            "Title":"Lost Inkeeper"
+        },
+        {
+            "Name":"Bruce",
+            "Title":"Weak doctor"
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/TeamPrep.unity
+    guid: d90cd9b56ce05d54f95d68fbc235a5f7
+  - enabled: 1
+    path: Assets/Scenes/Game.unity
+    guid: 2a487ac7affb7de4d99e80f751425764
+  - enabled: 1
+    path: Assets/Scenes/CombatScene.unity
+    guid: 2cda990e2423bbf4892e6590ba056729
+  m_configObjects: {}

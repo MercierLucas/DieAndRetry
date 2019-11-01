@@ -1,0 +1,35 @@
+{
+    "Items":
+    [
+        {
+            "id":0,
+            "charName":"Bob",
+            "title":"Lost Inkeeper",
+            "history":"*Insert random bullshit background*",
+            "role":"Damage",
+            "life":50,
+            "resistance":3,
+            "moral":1,
+            "strength":3,
+            "mindPower":1,
+            "initiative":40,
+            "critRate":20,
+            "spellsIds": [4,0,1]
+        },
+        {
+            "id":1,
+            "charName":"Bruce",
+            "title":"Town priest",
+            "history":"*Insert random boring background*",
+            "role":"Healer",
+            "life":40,
+            "resistance":2,
+            "moral":1,
+            "strength":2,
+            "mindPower":3,
+            "initiative":50,
+            "critRate":20,
+            "spellsIds": [4,2,3]
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+{
+    "Items":
+    [
+        {
+            "id":0,
+            "spellName":"Ligthning bolt",
+            "spellType":"dmg",
+            "target":"single",
+            "value":10,
+            "icon_name":"lightning_bolt"
+        },
+        {
+            "id":1,
+            "spellName":"Ligthning Storm",
+            "spellType":"dmg",
+            "target":"aoe",
+            "value":5,
+            "icon_name":"lightning_storm"
+        },
+        {
+            "id":2,
+            "spellName":"Lesser heal",
+            "spellType":"heal",
+            "target":"single",
+            "value":13,
+            "icon_name":"lesser_heal"
+        },
+        {
+            "id":3,
+            "spellName":"Rejuvenate",
+            "spellType":"heal",
+            "target":"aoe",
+            "value":8,
+            "icon_name":"heal_aoe"
+        },
+        {
+            "id":4,
+            "spellName":"Swipe",
+            "spellType":"dmg",
+            "target":"single",
+            "value":5,
+            "icon_name":"hammer"
+        }
+    ]
+}
