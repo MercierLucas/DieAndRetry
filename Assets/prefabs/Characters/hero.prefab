@@ -48,12 +48,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HealthBar: {fileID: 0}
   character:
-    charName: Bob
-    title: 
+    charName: TEMPLATE
+    title: dummy
     history: 
     role: 
-    life: 10
-    maxLife: 10
+    life: 0
+    maxLife: 0
     resistance: 0
     moral: 0
     strength: 0

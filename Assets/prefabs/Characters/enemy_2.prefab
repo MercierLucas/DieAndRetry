@@ -49,11 +49,21 @@ MonoBehaviour:
   HealthBar: {fileID: 0}
   character:
     charName: Butcher
+    title: 
+    history: 
+    role: 
     life: 20
     maxLife: 20
-    speed: 5
+    resistance: 0
+    moral: 0
+    strength: 0
+    mindpower: 0
+    initiative: 15
     armor: 0
     isAlly: 0
+    isDead: 0
+    critRate: 0
+    spellsIds: 
     spells: []
 --- !u!61 &8475302797836865249
 BoxCollider2D:

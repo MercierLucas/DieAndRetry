@@ -4,11 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class CombatManager : MonoBehaviour
 {
 
+    public GameObject heroPrefab;
     public TeamManager teamManager;
+
+    public Character[] teamCharacters;
     public GameObject[] allies;
 
     public GameObject[] enemies;
@@ -34,34 +38,52 @@ public class CombatManager : MonoBehaviour
 
     public Spells selectedSpell;
 
+    public Spells[] charSpells;
+
     public GameObject[] target;
 
     public GameObject textDamages;
 
     public GameObject EndCombatText;
 
+    public GameObject endPanel;
+
+    public bool victory;
+
     public int deadAllies,deadEnemies;
 
+    public bool isFightOver;
+
+    public Character character;
     string currentState;
     // Start is called before the first frame update
     void Awake()
     {
         teamManager = GameObject.Find("TeamManager").GetComponent<TeamManager>();
+        teamCharacters = teamManager.team;
         spawnEntities();
         entitiesOrder=defineOrderTurn();
         Debug.Log("ORDER:");
         Array.ForEach(entitiesOrder,Debug.Log);
         setupPortrait();
+
+        charSpells=new Spells[3];
+        
         currentEntity=entitiesOrder[0];
         currentEntityId=0;
         currentState=States[0];
         deadAllies=0;
         deadEnemies=0;
         target=new GameObject[3];
-        SelectSpell(0);
-        UpdatePortraits();
 
-        EndCombatText.SetActive(false);
+        
+        UpdatePortraits();
+        UpdateActionBar();
+        SelectSpell(0);
+        //EndCombatText.SetActive(false);
+        endPanel.SetActive(false);
+
+        isFightOver = false;
     }
 
     private void nextChar(){
@@ -77,100 +99,118 @@ public class CombatManager : MonoBehaviour
             currentEntity=entitiesOrder[currentEntityId];
         }
         UpdatePortraits();
+        UpdateActionBar();
     }
 
     void Update(){
-        Character character=currentEntity.GetComponent<Entity>().character;
-        displayState(currentState);
-        if(character.isAlly){
-            switch(currentState){
-                case "Select":
-                    // Selecting action and target(s)
-                    if (Input.GetMouseButtonDown(0)) {
-                        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                        Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
-                        
-                        RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
-                        if (hit.collider != null) {
-                            //Debug.Log(hit.collider.gameObject.GetComponent<Entity>().charName);
+        if(!isFightOver){
+            character=currentEntity.GetComponent<Entity>().character;
+            displayState(currentState);
+            if(character.isAlly){
+                switch(currentState){
+                    case "Select":
+                        // Selecting action and target(s)
+                        if (Input.GetMouseButtonDown(0)) {
+                            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                            Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
+                            
+                            RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
+                            if (hit.collider != null) {
+                                //Debug.Log(hit.collider.gameObject.GetComponent<Entity>().charName);
 
-                            // if dmg spell and target is hostile
-                            if(selectedSpell.spellType == "dmg" && !hit.collider.gameObject.GetComponent<Entity>().character.isAlly && !hit.collider.gameObject.GetComponent<Entity>().character.isDead){
-                                if(selectedSpell.target == "single"){
-                                    target[0]=hit.collider.gameObject;
-                                }else if(selectedSpell.target == "aoe"){
-                                    target=GameObject.FindGameObjectsWithTag("Enemy");
+                                // if dmg spell and target is hostile
+                                if(selectedSpell.spellType == "dmg" && !hit.collider.gameObject.GetComponent<Entity>().character.isAlly && !hit.collider.gameObject.GetComponent<Entity>().character.isDead){
+                                    if(selectedSpell.target == "single"){
+                                        target[0]=hit.collider.gameObject;
+                                    }else if(selectedSpell.target == "aoe"){
+                                        target=GameObject.FindGameObjectsWithTag("Enemy");
+                                    }
+                                    //Debug.Log(target.Length);
+                                    currentState="Apply";
                                 }
-                                //Debug.Log(target.Length);
-                                currentState="Apply";
-                            }
 
-                            if(selectedSpell.spellType == "heal" && hit.collider.gameObject.GetComponent<Entity>().character.isAlly && !hit.collider.gameObject.GetComponent<Entity>().character.isDead){
-                                if(selectedSpell.target == "single"){
-                                    target[0]=hit.collider.gameObject;
-                                }else if(selectedSpell.target == "aoe"){
-                                    target=GameObject.FindGameObjectsWithTag("Ally");
+                                if(selectedSpell.spellType == "heal" && hit.collider.gameObject.GetComponent<Entity>().character.isAlly && !hit.collider.gameObject.GetComponent<Entity>().character.isDead){
+                                    if(selectedSpell.target == "single"){
+                                        target[0]=hit.collider.gameObject;
+                                    }else if(selectedSpell.target == "aoe"){
+                                        target=GameObject.FindGameObjectsWithTag("Ally");
+                                    }
+                                    //Debug.Log(target.Length);
+                                    currentState="Apply";
                                 }
-                                //Debug.Log(target.Length);
-                                currentState="Apply";
-                            }
 
 
-                        }
-                    }
-
-                    break;
-
-                case "Apply":
-                    for (int i = 0; i < target.Length; i++)
-                    {
-                        if(selectedSpell.spellType == "dmg"){
-                            if(target[i] != null) {
-                                Entity tempEntity=target[i].GetComponent<Entity>();
-                                Character tempCharacter=tempEntity.character;
-                                float damages=tempEntity.takeDamages(selectedSpell.value);
-                                Debug.Log("POS: "+target[i].gameObject.transform.position);
-                                GameObject txtDmg=Instantiate(textDamages,target[i].gameObject.transform.position,Quaternion.identity);
-                                txtDmg.GetComponent<textDmg>().setDamages(damages,"dmg");
-                                Debug.Log(currentEntity.GetComponent<Entity>().character.charName+ " dealt "+damages+" damages to "+ tempCharacter.charName);
-                                if(tempCharacter.isDead){
-                                    target[i].SetActive(false);
-                                    Debug.Log(tempCharacter.charName.ToUpper()+" died.");
-                                    if(tempCharacter.isAlly) deadAllies++;
-                                    else deadEnemies++;
-                                }
-                            }
-                        }else if(selectedSpell.spellType == "heal"){
-                            if(target[i] != null){
-                                Entity tempEntity=target[i].GetComponent<Entity>();
-                                Character tempCharacter=tempEntity.character;
-                                float heal=selectedSpell.value;
-                                //Debug.Log("POS: "+target[i].gameObject.transform.position);
-                                GameObject txtDmg=Instantiate(textDamages,target[i].gameObject.transform.position,Quaternion.identity);
-                                txtDmg.GetComponent<textDmg>().setDamages(selectedSpell.value,"heal");
-                                Debug.Log(currentEntity.GetComponent<Entity>().character.charName+ " healed "+heal+" HP to "+ tempCharacter.charName);
                             }
                         }
-                    }
-                    currentState="CheckForEnd";
-                    break;
 
-                case "CheckForEnd":
-                    Debug.Log("Dead allies: "+deadAllies);
-                    Debug.Log("Dead enemies: "+deadEnemies);
+                        break;
 
-                    if(deadEnemies==enemies.Length) EndScreen("Victory");
-                    if(deadAllies==allies.Length) EndScreen("Defeat");
-                    nextChar();
-                    currentState=States[0];
-                    break;
+                    case "Apply":
+                        for (int i = 0; i < target.Length; i++)
+                        {
+                            if(selectedSpell.spellType == "dmg"){
+                                if(target[i] != null) {
+                                    Entity tempEntity=target[i].GetComponent<Entity>();
+                                    Character tempCharacter=tempEntity.character;
+                                    float damages=tempEntity.takeDamages(selectedSpell.value);
+                                    Debug.Log("POS: "+target[i].gameObject.transform.position);
+                                    GameObject txtDmg=Instantiate(textDamages,target[i].gameObject.transform.position,Quaternion.identity);
+                                    txtDmg.GetComponent<textDmg>().setDamages(damages,"dmg");
+                                    Debug.Log(currentEntity.GetComponent<Entity>().character.charName+ " dealt "+damages+" damages to "+ tempCharacter.charName);
+                                    if(tempCharacter.isDead){
+                                        target[i].SetActive(false);
+                                        Debug.Log(tempCharacter.charName.ToUpper()+" died.");
+                                        if(tempCharacter.isAlly) deadAllies++;
+                                        else deadEnemies++;
+                                    }
+                                }
+                            }else if(selectedSpell.spellType == "heal"){
+                                if(target[i] != null){
+                                    Entity tempEntity=target[i].GetComponent<Entity>();
+                                    Character tempCharacter=tempEntity.character;
+                                    float heal=selectedSpell.value;
+                                    //Debug.Log("POS: "+target[i].gameObject.transform.position);
+                                    GameObject txtDmg=Instantiate(textDamages,target[i].gameObject.transform.position,Quaternion.identity);
+                                    txtDmg.GetComponent<textDmg>().setDamages(selectedSpell.value,"heal");
+                                    Debug.Log(currentEntity.GetComponent<Entity>().character.charName+ " healed "+heal+" HP to "+ tempCharacter.charName);
+                                }
+                            }
+                        }
+                        currentState="CheckForEnd";
+                        break;
 
-                
+                    case "CheckForEnd":
+                        Debug.Log("Dead allies: "+deadAllies);
+                        Debug.Log("Dead enemies: "+deadEnemies);
+
+                        if(deadEnemies==enemies.Length){
+                            EndScreen("Victory");
+                            victory = true;
+                            isFightOver = true;
+                        }
+                        if(deadAllies==allies.Length){
+                            EndScreen("Defeat");
+                            victory = false;
+                            isFightOver = true;
+                        }
+                        nextChar();
+                        currentState=States[0];
+                        break;
+
+                    
+                }
+            }else{
+                Debug.Log(character.charName+ "'s turn. It is a bot. Skiping to next char.");
+                nextChar();
             }
         }else{
-            Debug.Log(character.charName+ "'s turn. It is a bot. Skiping to next char.");
-            nextChar();
+            endPanel.SetActive(true);
+            if(Input.GetKeyDown("space")){
+                if(victory) SceneManager.LoadScene("Game");
+                else SceneManager.LoadScene("TeamPrep");
+            }
         }
+
     }
 
 
@@ -206,13 +246,30 @@ public class CombatManager : MonoBehaviour
         portraits[currentEntityId].GetComponent<RawImage>().color=Color.grey;
     }
 
+    private void UpdateActionBar(){
+        Debug.Log("Updating action bar");
+        character=currentEntity.GetComponent<Entity>().character;
+        if(character.isAlly){
+            Debug.Log("SPELL LENGTH: "+character.spells.Length);
+            for (int i = 0; i < character.spells.Length; i++)
+            {
+                charSpells[i] = character.spells[i];
+                Sprite texture=Resources.Load<Sprite>("spells/"+character.spells[i].icon_name.ToLower()) as Sprite;
+                Debug.Log("spell img: " +texture);
+                spellBtns[i].GetComponent<Image>().sprite=texture;
+            }
+        }
+    }
+
 
     public void SelectSpell(int id){
+        Debug.Log("Selected spell n°"+id);
         for(int i=0;i<spellBtns.Length;i++){
             spellBtns[i].GetComponent<Image>().color=Color.white;
         }
         spellBtns[id].GetComponent<Image>().color=Color.blue;
 
+        selectedSpell = charSpells[id];
         //selectedSpell= spellBtns[id].GetComponent<Spells>();
     }
 
@@ -220,9 +277,24 @@ public class CombatManager : MonoBehaviour
         
     }
     void spawnEntities(){
-        for(int i=0;i<allies.Length;i++){
-            Instantiate(allies[i],alliesSpawnPoints[i].transform.position, Quaternion.identity);
+        allies= new GameObject[teamCharacters.Length];
+        for(int i=0;i<teamCharacters.Length;i++){
+            if(teamCharacters[i] != null){
+                GameObject gameObject=Instantiate(heroPrefab,alliesSpawnPoints[i].transform.position, Quaternion.identity);
+                gameObject.GetComponent<Entity>().character=teamCharacters[i];
+                Sprite sprite = Resources.Load<Sprite>("char_texture/"+teamCharacters[i].charName.ToLower());
+                Debug.Log(Resources.Load("char_texture/"+teamCharacters[i].charName.ToLower()));
+                Debug.Log("SPRITE: "+sprite);
+                gameObject.transform.Find("texture").GetComponent<SpriteRenderer>().sprite = sprite;
+
+                gameObject.GetComponent<Entity>().character.isAlly = true;
+                gameObject.name = teamCharacters[i].charName;
+                allies[i] = gameObject;
+            }
         }
+/*         for(int i=0;i<allies.Length;i++){
+            Instantiate(allies[i],alliesSpawnPoints[i].transform.position, Quaternion.identity);
+        } */
 
         for(int i=0;i<enemies.Length;i++){
             Instantiate(enemies[i],enemiesSpawnPoints[i].transform.position, Quaternion.identity);

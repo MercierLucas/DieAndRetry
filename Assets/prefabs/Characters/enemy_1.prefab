@@ -129,12 +129,21 @@ MonoBehaviour:
   HealthBar: {fileID: 0}
   character:
     charName: undead
+    title: 
+    history: 
+    role: 
     life: 20
     maxLife: 20
-    speed: 10
+    resistance: 0
+    moral: 0
+    strength: 0
+    mindpower: 0
+    initiative: 10
     armor: 0
     isAlly: 0
     isDead: 0
+    critRate: 0
+    spellsIds: 
     spells: []
 --- !u!61 &-6506448771260031102
 BoxCollider2D:
